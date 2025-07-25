@@ -140,6 +140,13 @@
                         <option value="black">執黑棋 (後手)</option>
                     </select>
                 </label>
+                <label>請選擇AI難度: 
+                    <select id="custom-pve-difficulty-select-popup">
+                        <option value="easy" selected>簡單</option>
+                        <option value="medium">中級</option>
+                        <option value="hard">高級</option>
+                    </select>
+                </label>
                 <button onclick="confirmCustomPveStart()">開始對戰</button>
                 <button onclick="document.getElementById('custom-pve-overlay').classList.add('hidden')">取消</button>
             </div>
@@ -528,7 +535,11 @@
         }
         function confirmCustomPveStart() {
             const playerChoice = document.getElementById('custom-pve-color-select-popup').value;
+            const selectedDifficulty = document.getElementById('custom-pve-difficulty-select-popup').value;
             const startPlayer = startPlayerSelect.value;
+            
+            aiDifficulty = selectedDifficulty; // Set the global AI difficulty
+
             const customSetup = { board: customBoardState.map(row => [...row]), player: startPlayer };
             document.getElementById('custom-pve-overlay').classList.add('hidden');
             startGame('pve', playerChoice, customSetup);
@@ -550,111 +561,38 @@
             startGame('pvp', 'red', customSetup);
         }
 
-        // --- AI LOGIC ---
-        function getDynamicPieceValues(currentBoard) { const pieceCount = currentBoard.flat().filter(p => p).length; if (pieceCount > 24) return { K: 10000, R: 900, C: 450, H: 400, E: 200, A: 200, P: 100 }; else if (pieceCount > 15) return { K: 10000, R: 900, H: 450, C: 400, E: 200, A: 200, P: 150 }; else return { K: 10000, R: 900, H: 500, P: 250, C: 350, E: 200, A: 200 }; }
-        function evaluateBoardState(currentBoard) { let totalScore = 0; const currentPieceValues = getDynamicPieceValues(currentBoard); for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { const pieceCode = currentBoard[r][c]; if (pieceCode) { const pieceInfo = getPieceInfo(pieceCode); let score = currentPieceValues[pieceInfo.type] || 0; if (PST[pieceInfo.type]) { score += (pieceInfo.color === 'red') ? PST[pieceInfo.type][r][c] : PST[pieceInfo.type][9 - r][c]; } if (pieceInfo.color === aiColor) { totalScore += score; } else { totalScore -= score; }}}} return totalScore; }
-        
-        function minimax(currentBoard, depth, alpha, beta, maximizingPlayer, useQuiescence) {
-            if (depth === 0) {
-                if (useQuiescence) return quiescenceSearch(currentBoard, alpha, beta, maximizingPlayer);
-                return { score: evaluateBoardState(currentBoard) };
-            }
-            const color = maximizingPlayer ? aiColor : (aiColor === 'red' ? 'black' : 'red');
-            let bestMove = null;
-            const moves = [];
-            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { const p = currentBoard[r][c]; if (p && getPieceInfo(p).color === color) getValidMoves(currentBoard, r, c).forEach(m => moves.push({ from: { r, c }, to: m })); }
-            let legalMoves = filterValidMoves(currentBoard, moves, color);
-            legalMoves = legalMoves.filter(move => !isRepetitiveCheckViolation(move, currentBoard, color));
-            if (legalMoves.length === 0) { return { score: isKingInCheck(currentBoard, color) ? (maximizingPlayer ? -Infinity : Infinity) : 0 }; }
-            
-            if (maximizingPlayer) {
-                let maxEval = -Infinity;
-                for (const move of legalMoves) {
-                    const tempBoard = currentBoard.map(row => [...row]);
-                    tempBoard[move.to.r][move.to.c] = tempBoard[move.from.r][move.from.c];
-                    tempBoard[move.from.r][move.from.c] = null;
-                    const { score } = minimax(tempBoard, depth - 1, alpha, beta, false, useQuiescence);
-                    if (score > maxEval) { maxEval = score; bestMove = move; }
-                    alpha = Math.max(alpha, score);
-                    if (beta <= alpha) break;
-                }
-                return { score: maxEval, move: bestMove };
-            } else {
-                let minEval = Infinity;
-                for (const move of legalMoves) {
-                    const tempBoard = currentBoard.map(row => [...row]);
-                    tempBoard[move.to.r][move.to.c] = tempBoard[move.from.r][move.from.c];
-                    tempBoard[move.from.r][move.from.c] = null;
-                    const { score } = minimax(tempBoard, depth - 1, alpha, beta, true, useQuiescence);
-                    if (score < minEval) { minEval = score; bestMove = move; }
-                    beta = Math.min(beta, score);
-                    if (beta <= alpha) break;
-                }
-                return { score: minEval, move: bestMove };
-            }
-        }
+        // --- AI LOGIC (Now handled by Web Worker) ---
+        let aiWorker = new Worker('ai_worker.js');
 
-        function quiescenceSearch(currentBoard, alpha, beta, maximizingPlayer) {
-            const standPat = evaluateBoardState(currentBoard);
-            const color = maximizingPlayer ? aiColor : (aiColor === 'red' ? 'black' : 'red');
-            if (maximizingPlayer) {
-                if (standPat >= beta) return { score: beta };
-                if (standPat > alpha) alpha = standPat;
-            } else {
-                if (standPat <= alpha) return { score: alpha };
-                if (standPat < beta) beta = standPat;
-            }
-            const moves = [];
-            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { const p = currentBoard[r][c]; if (p && getPieceInfo(p).color === color) { getValidMoves(currentBoard, r, c).forEach(m => { if (currentBoard[m.r][m.c]) moves.push({ from: { r, c }, to: m }); }); } }
-            const legalCaptures = filterValidMoves(currentBoard, moves, color);
-            for (const move of legalCaptures) {
-                const tempBoard = currentBoard.map(row => [...row]);
-                tempBoard[move.to.r][move.to.c] = tempBoard[move.from.r][move.from.c];
-                tempBoard[move.from.r][move.from.c] = null;
-                const { score } = quiescenceSearch(tempBoard, alpha, beta, !maximizingPlayer);
-                if (maximizingPlayer) {
-                    if (score >= beta) return { score: beta };
-                    if (score > alpha) alpha = score;
-                } else {
-                    if (score <= alpha) return { score: alpha };
-                    if (score < beta) beta = score;
-                }
-            }
-            return { score: maximizingPlayer ? alpha : beta };
-        }
-
-        function makeAiMove() {
-            let result;
-            let depth, useQuiescence;
-
-            switch (aiDifficulty) {
-                case 'easy':
-                    depth = 2;
-                    useQuiescence = false;
-                    break;
-                case 'medium':
-                    depth = 3;
-                    useQuiescence = true;
-                    break;
-                case 'hard':
-                    depth = 4;
-                    useQuiescence = true;
-                    break;
-                default:
-                    depth = 2;
-                    useQuiescence = false;
-                    break;
-            }
-            
-            result = minimax(boardState, depth, -Infinity, Infinity, true, useQuiescence);
-            
+        aiWorker.onmessage = function(e) {
+            const { move } = e.data;
             isAiThinking = false;
             undoBtn.disabled = (moveHistory.length === 0);
-            if (result && result.move) {
-                animateAndMovePiece(result.move.from, result.move.to);
+            statusDisplay.textContent = `${currentPlayer === 'red' ? '紅方' : '黑方'}回合`; // Restore status
+
+            if (move) {
+                animateAndMovePiece(move.from, move.to);
             } else {
-                checkForEndOfGame();
+                checkForEndOfGame(); // AI found no valid moves
             }
+        };
+
+        aiWorker.onerror = function(error) {
+            console.error("AI Worker Error:", error.message);
+            isAiThinking = false;
+            statusDisplay.textContent = "AI錯誤，請刷新頁面";
+        };
+
+        function makeAiMove() {
+            isAiThinking = true;
+            statusDisplay.textContent = 'AI思考中...';
+            undoBtn.disabled = true;
+            aiWorker.postMessage({
+                boardState: boardState,
+                difficulty: aiDifficulty,
+                aiColor: aiColor,
+                moveHistory: moveHistory
+            });
         }
     </script>
 </body>
