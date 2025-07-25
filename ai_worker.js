@@ -71,11 +71,14 @@ function minimax(currentBoard, depth, alpha, beta, maximizingPlayer, useOptimiza
             tempBoard[move.to.r][move.to.c] = tempBoard[move.from.r][move.from.c];
             tempBoard[move.from.r][move.from.c] = null;
             const { score } = minimax(tempBoard, depth - 1, alpha, beta, false, useOptimizations);
-            if (score > maxEval) { maxEval = score; bestMove = move; }
+            if (score > maxEval) {
+                maxEval = score;
+                bestMove = move;
+            }
             alpha = Math.max(alpha, score);
             if (beta <= alpha) break;
         }
-        // Failsafe: If all moves are equally bad (e.g., lead to mate), pick the first one.
+        // Failsafe: If no move was chosen (e.g., all moves lead to an equally bad mate), pick the first available one.
         if (bestMove === null && legalMoves.length > 0) {
             bestMove = legalMoves[0];
         }
@@ -87,7 +90,10 @@ function minimax(currentBoard, depth, alpha, beta, maximizingPlayer, useOptimiza
             tempBoard[move.to.r][move.to.c] = tempBoard[move.from.r][move.from.c];
             tempBoard[move.from.r][move.from.c] = null;
             const { score } = minimax(tempBoard, depth - 1, alpha, beta, true, useOptimizations);
-            if (score < minEval) { minEval = score; bestMove = move; }
+            if (score < minEval) {
+                minEval = score;
+                bestMove = move;
+            }
             beta = Math.min(beta, score);
             if (beta <= alpha) break;
         }
