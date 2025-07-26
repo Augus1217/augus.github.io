@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中國象棋 - 最终完美版</title>
+    <title>中華象棋 - 最终完美版</title>
     <style>
         /* --- General & Layout --- */
         body { font-family: 'Microsoft YaHei', 'PingFang TC', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #e4cda9; overflow: hidden; }
@@ -105,9 +105,21 @@
 <body>
     <div id="game-wrapper">
         <div id="start-screen" class="screen-overlay">
-            <h1>中國象棋</h1>
-            <div class="mode-selection"><p>請選擇遊戲模式</p><button onclick="setupMode('pvp')">雙人對戰</button><button onclick="setupMode('pve')">人機對戰</button><button onclick="showSetupScreen()">自訂局面</button></div>
-            
+            <h1>中華象棋</h1>
+            <div class="mode-selection"><p>請選擇遊戲模式</p>
+                <table><tr>
+                    <td>
+                        <button onclick="setupMode('pvp')">雙人對戰</button>
+                    </td>
+                    <td>
+                        <button onclick="setupMode('pve')">人機對戰</button>
+                    </td>
+                    <td>
+                        <button onclick="showSetupScreen()">自訂局面</button>
+                    </td>
+                </tr></table>
+            </div>
+            <table>
             <div id="difficulty-selection" class="hidden pve-setup">
                 <p>請選擇AI難度</p>
                 <button onclick="selectDifficulty('easy')">簡單</button>
