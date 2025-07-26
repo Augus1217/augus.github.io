@@ -10,9 +10,54 @@ const PST_E = Array(10).fill().map(() => Array(9).fill(0));
 PST_E[5][2] = PST_E[5][6] = PST_E[7][0] = PST_E[7][4] = PST_E[7][8] = 2;
 const PST_K = Array(10).fill().map(() => Array(9).fill(0));
 PST_K[7][4] = PST_K[9][4] = 1; PST_K[8][3] = PST_K[8][5] = 2;
-const PST = { 'P': [ [0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0], [7,7,7,7,7,7,7,7,7], [15,15,15,15,15,15,15,15,15], [20,25,28,30,32,30,28,25,20], [25,30,33,35,38,35,33,30,25], [30,35,40,45,50,45,40,35,30], [35,40,48,55,60,55,48,40,35], [80,85,90,100,120,100,90,85,80] ], 'C': [ [1,1,0,-2,-2,-2,0,1,1], [1,1,0,-1,-1,-1,0,1,1], [1,1,1,0,0,0,1,1,1], [2,2,3,4,5,4,3,2,2], [3,3,4,5,6,5,4,3,3], [4,4,5,6,7,6,5,4,4], [5,5,6,7,8,7,6,5,5], [6,6,6,8,9,8,6,6,6], [7,7,6,8,9,8,6,7,7], [6,7,6,7,8,7,6,7,6] ], 'H': [ [0,-2,0,0,0,0,0,-2,0], [0,0,4,6,8,6,4,0,0], [2,4,8,10,12,10,8,4,2], [4,6,10,12,14,12,10,6,4], [6,8,12,14,16,14,12,8,6], [4,6,10,12,14,12,10,6,4], [2,4,8,10,12,10,8,4,2], [4,2,80,60,100,60,80,2,4], [0,0,4,8,80,8,4,0,0], [0,-2,0,4,0,4,0,-2,0] ], 'R': [ [6,6,6,6,80,6,6,6,6], [8,10,10,10,12,10,10,10,8], [8,10,10,11,12,11,10,10,8], [8,10,11,12,14,12,11,10,8], [10,12,12,14,15,14,12,12,10], [12,14,14,15,16,15,14,14,12], [12,14,14,15,16,15,14,14,12], [10,12,12,14,15,14,12,12,10], [8,10,10,11,12,11,10,10,8], [80,10,10,10,12,10,10,10,80] ], 'A': PST_A, 'E': PST_E, 'K': PST_K };
+const PST = { 'P': [
+            [-5, -5, -5, -5, -5, -5, -5, -5, -5], // Black's baseline (low value for red pawn)
+            [0, 0, 0, 5, 8, 5, 0, 0, 0],   // Inside black's palace
+            [0, 0, 5, 10, 15, 10, 5, 0, 0],  // Approaching the palace
+            [25, 30, 35, 40, 45, 40, 35, 30, 25], // The most threatening row
+            [20, 25, 30, 35, 40, 35, 30, 25, 20], // Strong row
+            [15, 18, 20, 22, 25, 22, 20, 18, 15], // Just crossed the river
+            [7, 7, 7, 7, 7, 7, 7, 7, 7],   // River bank
+            [0, 0, 0, -2, -2, -2, 0, 0, 0],  // Starting row (slight penalty to encourage moving)
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ], 'C': [
+            [1, 2, 3, 4, 5, 4, 3, 2, 1],
+            [1, 2, 3, 4, 5, 4, 3, 2, 1],
+            [2, 3, 4, 6, 7, 6, 4, 3, 2],
+            [3, 4, 5, 8, 10, 8, 5, 4, 3],
+            [4, 5, 6, 9, 11, 9, 6, 5, 4],
+            [4, 5, 6, 9, 11, 9, 6, 5, 4],
+            [3, 4, 5, 8, 9, 8, 5, 4, 3],
+            [2, 3, 3, 6, 7, 6, 3, 3, 2],
+            [1, 1, 2, 4, 5, 4, 2, 1, 1],
+            [0, 0, 1, 2, 3, 2, 1, 0, 0]
+        ], 'H': [
+            [0, 2, 4, 6, 8, 6, 4, 2, 0],
+            [2, 4, 8, 10, 12, 10, 8, 4, 2],
+            [4, 8, 12, 14, 16, 14, 12, 8, 4],
+            [6, 10, 14, 16, 18, 16, 14, 10, 6],
+            [4, 8, 12, 14, 16, 14, 12, 8, 4],
+            [2, 6, 10, 12, 14, 12, 10, 6, 2],
+            [2, 4, 8, 10, 12, 10, 8, 4, 2],
+            [0, 2, 4, 6, 8, 6, 4, 2, 0],
+            [-2, 0, 2, 4, 6, 4, 2, 0, -2],
+            [-4, -2, 0, 2, 0, 2, 0, -2, -4]
+        ], 'R': [
+            [14, 14, 14, 16, 18, 16, 14, 14, 14],
+            [13, 13, 13, 15, 16, 15, 13, 13, 13],
+            [12, 12, 12, 14, 15, 14, 12, 12, 12],
+            [11, 11, 11, 13, 14, 13, 11, 11, 11],
+            [10, 10, 10, 12, 13, 12, 10, 10, 10],
+            [9, 9, 9, 11, 12, 11, 9, 9, 9],
+            [8, 8, 8, 10, 11, 10, 8, 8, 8],
+            [7, 7, 7, 9, 9, 9, 7, 7, 7],
+            [6, 6, 6, 8, 8, 8, 6, 6, 6],
+            [6, 6, 6, 8, 8, 8, 6, 6, 6]
+        ], 'A': PST_A, 'E': PST_E, 'K': PST_K };
 let aiColor = 'black'; // Will be updated by the main thread
 let moveHistory = []; // Will be updated by the main thread
+
 
 // --- Helper Functions (Copied from main script) ---
 function getPieceInfo(piece) { if (!piece) return null; const color = piece.charAt(0) === 'r' ? 'red' : 'black'; const type = piece.charAt(1); const name = pieceNames[piece.charAt(0)][type]; return { color, type, name }; }
@@ -41,7 +86,124 @@ function getDynamicPieceValues(currentBoard) {
     }
     return dynamicValues;
 }
-function evaluateBoardState(currentBoard) { let totalScore = 0; const currentPieceValues = getDynamicPieceValues(currentBoard); for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { const pieceCode = currentBoard[r][c]; if (pieceCode) { const pieceInfo = getPieceInfo(pieceCode); let score = currentPieceValues[pieceInfo.type] || 0; if (PST[pieceInfo.type]) { score += (pieceInfo.color === 'red') ? PST[pieceInfo.type][r][c] : PST[pieceInfo.type][9 - r][c]; } if (pieceInfo.color === aiColor) { totalScore += score; } else { totalScore -= score; }}}} return totalScore; }
+function evaluateThreats(board, playerColor, currentPieceValues) {
+    let threatScore = 0;
+    const opponentColor = playerColor === 'red' ? 'black' : 'red';
+
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            const piece = board[r][c];
+            if (piece && getPieceInfo(piece).color === playerColor) {
+                const moves = getValidMoves(board, r, c);
+                for (const move of moves) {
+                    const targetPiece = board[move.r][move.c];
+                    if (targetPiece && getPieceInfo(targetPiece).color === opponentColor) {
+                        const attackerValue = currentPieceValues[getPieceInfo(piece).type] || 0;
+                        const targetValue = currentPieceValues[getPieceInfo(targetPiece).type] || 0;
+                        if (targetValue > attackerValue) {
+                            threatScore += (targetValue - attackerValue) / 100;
+                        }
+                        threatScore += 1;
+                    }
+                }
+            }
+        }
+    }
+    return threatScore;
+}
+
+function evaluateKingSafety(board, kingColor, currentPieceValues) {
+    let safetyScore = 0;
+    const kingPos = { r: -1, c: -1 };
+    findKing: for(let r=0; r<ROWS; r++) for(let c=0; c<COLS; c++) {
+        const p = board[r][c];
+        if (p && getPieceInfo(p).type === 'K' && getPieceInfo(p).color === kingColor) {
+            kingPos.r = r;
+            kingPos.c = c;
+            break findKing;
+        }
+    }
+
+    if (kingPos.r === -1) return -1000;
+
+    const palaceCenterR = kingColor === 'red' ? 8 : 1;
+    const palaceCenterC = 4;
+    const advisorPositions = [[palaceCenterR - 1, palaceCenterC - 1], [palaceCenterR - 1, palaceCenterC + 1], [palaceCenterR + 1, palaceCenterC - 1], [palaceCenterR + 1, palaceCenterC + 1]];
+    for(const [r, c] of advisorPositions) {
+        const piece = board[r] ? board[r][c] : null;
+        if(piece && getPieceInfo(piece).type === 'A' && getPieceInfo(piece).color === kingColor) {
+            safetyScore += 5;
+        }
+    }
+
+    const opponentColor = kingColor === 'red' ? 'black' : 'red';
+    for(let r = 0; r < ROWS; r++) {
+        for(let c = 0; c < COLS; c++) {
+            const piece = board[r][c];
+            if(piece && getPieceInfo(piece).color === opponentColor) {
+                const distanceR = Math.abs(r - kingPos.r);
+                const distanceC = Math.abs(c - kingPos.c);
+                if (distanceR <= 3 && distanceC <= 3) {
+                    safetyScore -= (currentPieceValues[getPieceInfo(piece).type] || 0) / 100;
+                }
+            }
+        }
+    }
+    
+    if ((kingColor === 'red' && kingPos.r === 9) || (kingColor === 'black' && kingPos.r === 0)) {
+        safetyScore += 3;
+    }
+
+    return safetyScore;
+}
+
+function evaluateBoardState(currentBoard) {
+    let totalScore = 0;
+    let redMobility = 0;
+    let blackMobility = 0;
+    const currentPieceValues = getDynamicPieceValues(currentBoard);
+
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            const pieceCode = currentBoard[r][c];
+            if (pieceCode) {
+                const pieceInfo = getPieceInfo(pieceCode);
+                let score = currentPieceValues[pieceInfo.type] || 0;
+                
+                if (PST[pieceInfo.type]) {
+                    score += (pieceInfo.color === 'red') ? PST[pieceInfo.type][r][c] : PST[pieceInfo.type][9 - r][c];
+                }
+
+                const moves = getValidMoves(currentBoard, r, c);
+                const mobilityScore = moves.length;
+
+                if (pieceInfo.color === 'red') {
+                    redMobility += mobilityScore;
+                } else {
+                    blackMobility += mobilityScore;
+                }
+
+                if (pieceInfo.color === aiColor) {
+                    totalScore += score;
+                } else {
+                    totalScore -= score;
+                }
+            }
+        }
+    }
+
+    const mobilityWeight = 10;
+    const mobilityDifference = (aiColor === 'red') ? (redMobility - blackMobility) : (blackMobility - redMobility);
+    totalScore += mobilityDifference * mobilityWeight;
+
+    const kingSafetyWeight = 50;
+    totalScore += (evaluateKingSafety(currentBoard, aiColor, currentPieceValues) - evaluateKingSafety(currentBoard, aiColor === 'red' ? 'black' : 'red', currentPieceValues)) * kingSafetyWeight;
+
+    const threatWeight = 20;
+    totalScore += (evaluateThreats(currentBoard, aiColor, currentPieceValues) - evaluateThreats(currentBoard, aiColor === 'red' ? 'black' : 'red', currentPieceValues)) * threatWeight;
+
+    return totalScore;
+}
 
 // --- Move Ordering Optimization ---
 function scoreMove(move, board, currentPieceValues) {
@@ -49,7 +211,9 @@ function scoreMove(move, board, currentPieceValues) {
     const targetPiece = board[move.to.r][move.to.c];
     if (targetPiece) {
         const movingPiece = board[move.from.r][move.from.c];
-        score = 10 * (currentPieceValues[getPieceInfo(targetPiece).type] || 0) - (currentPieceValues[getPieceInfo(movingPiece).type] || 0);
+        const movingPieceInfo = getPieceInfo(movingPiece);
+        const targetPieceInfo = getPieceInfo(targetPiece);
+        score = (currentPieceValues[targetPieceInfo.type] || 0) - (currentPieceValues[movingPieceInfo.type] || 0);
     }
     // Add positional bonus
     const pieceType = getPieceInfo(board[move.from.r][move.from.c]).type;
@@ -176,6 +340,10 @@ self.onmessage = function(e) {
             useOptimizations = true;
             break;
         case 'hard':
+            depth = 3;
+            useOptimizations = true;
+            break;
+        case 'expert':
             depth = 4;
             useOptimizations = true;
             break;
