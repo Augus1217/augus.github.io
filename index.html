@@ -120,10 +120,17 @@
 
             <div id="difficulty-selection" class="hidden pve-setup">
                 <p>請選擇AI難度</p>
-                <button onclick="selectDifficulty('easy')">簡單</button>
-                <button onclick="selectDifficulty('medium')">中級</button>
-                <button onclick="selectDifficulty('hard')">高級</button>
-                <button onclick="selectDifficulty('expert')">專家</button>
+                <table><tr>
+                    <td>                    
+                        <button onclick="selectDifficulty('easy')">簡單</button>
+                    </td><td>
+                        <button onclick="selectDifficulty('medium')">中級</button>
+                    </td><td>
+                        <button onclick="selectDifficulty('hard')">高級</button>
+                    </td><td>
+                        <button onclick="selectDifficulty('expert')">專家</button>
+                    </td>
+               </tr></table>
             </div>
 
             <div class="color-selection hidden pve-setup">
